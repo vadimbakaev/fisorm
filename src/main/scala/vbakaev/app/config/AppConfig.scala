@@ -17,6 +17,7 @@ final case class MongoDBConfiguration(
 )
 
 final case class MailConfig(
+    host: String,
     sender: String
 )
 

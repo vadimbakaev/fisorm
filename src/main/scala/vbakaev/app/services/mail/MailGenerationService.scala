@@ -7,7 +7,7 @@ trait MailGenerationService {
 }
 
 class MailGenerationServiceImpl(
-    host: String = "http://localhost:3000/",
+    host: String,
     sender: String
 ) extends MailGenerationService {
   private val AccountConfirmation = "accountConfirmation"

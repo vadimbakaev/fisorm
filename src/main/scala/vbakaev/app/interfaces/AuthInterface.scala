@@ -9,9 +9,9 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import javax.ws.rs.{GET, POST, Path}
+import javax.ws.rs.{POST, Path}
+import vbakaev.app.interfaces.ValidationDirective._
 import vbakaev.app.models.request.RegistrationRequest
-import vbakaev.app.models.response.StatusResponse
 import vbakaev.app.services.AuthService
 
 import scala.concurrent.ExecutionContext
@@ -48,10 +48,12 @@ class AuthInterface(
     path("accounts") {
       post {
         entity(as[RegistrationRequest]) { request =>
-          complete(authService.register(request.email).map {
-            case Some(_) => StatusCodes.Created
-            case None    => StatusCodes.BadRequest
-          })
+          validateModel(request).apply { validRequest =>
+            complete(authService.register(validRequest.email).map {
+              case Some(_) => StatusCodes.Created
+              case None    => StatusCodes.BadRequest
+            })
+          }
         }
       }
     }

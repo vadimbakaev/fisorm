@@ -10,7 +10,7 @@ import vbakaev.app.services.mail.{MailGenerationService, MailService}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthService {
-  def register(email: String): Future[Option[Unit]]
+  def register(email: String): Future[Unit]
   def access(email: String): Future[Option[Unit]]
 }
 
@@ -22,21 +22,26 @@ class AuthServiceImpl(
 )(implicit ec: ExecutionContext, clock: Clock)
     extends AuthService {
 
-  override def register(email: String): Future[Option[Unit]] = {
+  override def register(email: String): Future[Unit] = {
     accountRepository.read(email).flatMap {
       case Some(account) if account.activatedAt.isDefined =>
-        Future.successful(None)
+        sendAccessEmail(account)
       case Some(account) =>
-        sendConfirmRegistrationEmail(account).map(Some(_))
+        sendConfirmRegistrationEmail(account)
       case None =>
-        for {
-          account <- accountRepository.create(Account(email, activatedAt = None, clock.instant()))
-          _       <- sendConfirmRegistrationEmail(account)
-        } yield Some(())
+        accountRepository
+          .create(Account(email, activatedAt = None, clock.instant()))
+          .map(sendConfirmRegistrationEmail)
+          .map(_ => ())
     }
   }
 
   override def access(email: String): Future[Option[Unit]] = ???
+
+  private def sendAccessEmail(account: Account): Future[Unit] = {
+    print(account)
+    Future.unit
+  }
 
   private def sendConfirmRegistrationEmail(account: Account): Future[Unit] =
     for {

@@ -49,13 +49,11 @@ class AuthInterface(
       post {
         entity(as[RegistrationRequest]) { request =>
           validateModel(request).apply { validRequest =>
-            complete(authService.register(validRequest.email).map {
-              case Some(_) => StatusCodes.Created
-              case None    => StatusCodes.BadRequest
-            })
+            complete(authService.register(validRequest.email).map(_ => StatusCodes.Created))
           }
         }
       }
     }
   }
+
 }

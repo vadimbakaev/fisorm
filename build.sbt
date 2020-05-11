@@ -21,6 +21,7 @@ lazy val root = (project in file("."))
         val javaxWsRs       = "2.1.1"
         val mailjet         = "4.2.0"
         val mongo           = "4.0.2"
+        val akkaHttpCORS    = "0.4.3"
       }
 
       Seq(
@@ -34,6 +35,7 @@ lazy val root = (project in file("."))
         "com.github.swagger-akka-http" %% "swagger-akka-http"    % Version.swaggerAkkaHttp,
         "com.github.swagger-akka-http" %% "swagger-scala-module" % Version.swaggerScala,
         "com.typesafe.akka"            %% "akka-http"            % Version.akkaHttp,
+        "ch.megard"                    %% "akka-http-cors"       % Version.akkaHttpCORS,
         "com.typesafe.akka"            %% "akka-stream"          % Version.akka,
         "com.typesafe.akka"            %% "akka-slf4j"           % Version.akka,
         "com.geirsson"                 %% "scalafmt-core"        % Version.scalaFmt,

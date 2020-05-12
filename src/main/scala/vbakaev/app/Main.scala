@@ -3,16 +3,17 @@ package vbakaev.app
 import java.time.Clock
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.server.ExceptionHandler
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RejectionHandler
 import com.typesafe.scalalogging.LazyLogging
 import pureconfig.ConfigSource
 import vbakaev.app.config.AppConfig
 import vbakaev.app.interfaces.{AuthInterface, ErrorHandler, Interface}
-import vbakaev.app.repositories.{AccountRepository, RegistrationTokenRepository}
-import vbakaev.app.services.AuthServiceImpl
+import vbakaev.app.services.{AuthServiceImpl, JwtService}
 import vbakaev.app.services.mail.{MailGenerationServiceImpl, MailServiceImpl}
 import pureconfig.generic.auto._
+import vbakaev.app.repositories.mongo.{AccountRepository, RegistrationTokenRepository}
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -30,11 +31,19 @@ object Main extends App with LazyLogging {
         val mailService                 = new MailServiceImpl(config.mailjet)
         val repository                  = new AccountRepository(config.mongo)
         val registrationTokenRepository = new RegistrationTokenRepository(config.mongo)
-        val authService                 = new AuthServiceImpl(repository, registrationTokenRepository, mailGenerator, mailService)
+        val tokenGenerationService      = new JwtService(config.jwt)
+        val authService = new AuthServiceImpl(
+          repository,
+          registrationTokenRepository,
+          mailGenerator,
+          mailService,
+          tokenGenerationService
+        )
 
         val api: Set[Interface]                         = Set(new AuthInterface(authService))
         val serverRoutes                                = new ServerRoutes(config, api).routes
-        implicit def rejectionHandler: RejectionHandler = ErrorHandler.default
+        implicit def rejectionHandler: RejectionHandler = ErrorHandler.rejectionHandler
+        implicit def exceptionHandler: ExceptionHandler = ErrorHandler.exceptionHandler
         Http().bindAndHandle(serverRoutes, config.http.interface, config.http.port)
 
         logger.info(s"Server is running on http://${config.http.interface}:${config.http.port}/status")

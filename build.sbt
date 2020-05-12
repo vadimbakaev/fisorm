@@ -22,9 +22,10 @@ lazy val root = (project in file("."))
         val mailjet         = "4.2.0"
         val mongo           = "4.0.2"
         val akkaHttpCORS    = "0.4.3"
+        val jwtCirce        = "4.2.0"
       }
-
       Seq(
+        "com.pauldijou"                %% "jwt-circe"            % Version.jwtCirce,
         "org.mongodb.scala"            %% "mongo-scala-driver"   % Version.mongo,
         "com.mailjet"                  % "mailjet-client"        % Version.mailjet,
         "javax.ws.rs"                  % "javax.ws.rs-api"       % Version.javaxWsRs,

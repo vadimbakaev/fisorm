@@ -1,4 +1,4 @@
-package vbakaev.app.repositories
+package vbakaev.app.repositories.mongo
 
 import com.mongodb.ConnectionString
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
@@ -7,16 +7,18 @@ import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.connection.ClusterSettings
 import org.mongodb.scala.model.{Filters, IndexOptions, Indexes}
 import org.mongodb.scala.{MongoClient, MongoClientSettings, MongoCollection, MongoDatabase}
-import vbakaev.app.config.MongoDBConfiguration
+import vbakaev.app.config.MongoDBConfig
 import vbakaev.app.models.domain.Account
+import vbakaev.app.repositories.{CreateRepository, ReadRepository, UpdateRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class AccountRepository(
-    config: MongoDBConfiguration
+    config: MongoDBConfig
 )(implicit ec: ExecutionContext)
     extends CreateRepository[Account]
-    with ReadRepository[Account] {
+    with ReadRepository[Account]
+    with UpdateRepository[Account] {
 
   private lazy val clusterSettings = ClusterSettings
     .builder()
@@ -58,4 +60,7 @@ class AccountRepository(
     collection.find[Account](Filters.eq("email", email)).toFuture().map(_.headOption)
   }
 
+  override def update(item: Account): Future[Option[Account]] = collectionF.flatMap { collection =>
+    collection.findOneAndReplace(Filters.eq("email", item.email), item).toFutureOption()
+  }
 }

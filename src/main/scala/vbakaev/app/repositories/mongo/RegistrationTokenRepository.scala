@@ -1,24 +1,29 @@
-package vbakaev.app.repositories
+package vbakaev.app.repositories.mongo
 
 import java.time.Clock
 import java.util.UUID
 
 import com.mongodb.ConnectionString
+import org.bson.UuidRepresentation
+import org.bson.codecs.UuidCodec
+import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.connection.ClusterSettings
 import org.mongodb.scala.model.{Filters, IndexOptions, Indexes}
 import org.mongodb.scala.{MongoClient, MongoClientSettings, MongoCollection, MongoDatabase}
-import vbakaev.app.config.MongoDBConfiguration
+import vbakaev.app.config.MongoDBConfig
 import vbakaev.app.models.domain.auth.RegistrationToken
+import vbakaev.app.repositories.{DeleteRepository, SafeRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class RegistrationTokenRepository(
-    config: MongoDBConfiguration
+    config: MongoDBConfig
 )(implicit ec: ExecutionContext, clock: Clock)
-    extends SafeRepository[RegistrationToken] {
+    extends SafeRepository[RegistrationToken]
+    with DeleteRepository[RegistrationToken] {
 
   private lazy val clusterSettings = ClusterSettings
     .builder()
@@ -38,6 +43,7 @@ class RegistrationTokenRepository(
     .withCodecRegistry(
       fromRegistries(
         fromProviders(classOf[RegistrationToken]),
+        CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
         DEFAULT_CODEC_REGISTRY
       )
     )
@@ -62,9 +68,13 @@ class RegistrationTokenRepository(
 
   override def newItem(email: String): RegistrationToken =
     RegistrationToken(
-      token = UUID.randomUUID().toString,
+      token = UUID.randomUUID(),
       email = email,
       confirmedAt = None,
       createdAt = clock.instant()
     )
+
+  override def delete(email: String): Future[Option[RegistrationToken]] = collectionF.flatMap { collection =>
+    collection.findOneAndDelete(Filters.eq("email", email)).toFutureOption()
+  }
 }

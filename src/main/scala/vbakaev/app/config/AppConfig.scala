@@ -10,10 +10,9 @@ final case class MailjetConfig(
     apiSecret: String
 )
 
-final case class MongoDBConfiguration(
+final case class MongoDBConfig(
     uri: String,
-    database: String,
-    collection: String
+    database: String
 )
 
 final case class MailConfig(
@@ -21,9 +20,15 @@ final case class MailConfig(
     sender: String
 )
 
+final case class JwtConfig(
+    secretKey: String,
+    algo: String
+)
+
 final case class AppConfig(
     http: ServerConfig,
     mailjet: MailjetConfig,
-    mongo: MongoDBConfiguration,
-    mail: MailConfig
+    mongo: MongoDBConfig,
+    mail: MailConfig,
+    jwt: JwtConfig
 )

@@ -24,9 +24,9 @@ trait ReadRepository[A] {
 }
 
 trait UpdateRepository[A] {
-  def update(item: A): Future[A]
+  def update(item: A): Future[Option[A]]
 }
 
 trait DeleteRepository[A] {
-  def delete(id: String): Future[A]
+  def delete(id: String): Future[Option[A]]
 }

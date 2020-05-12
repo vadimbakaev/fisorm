@@ -1,9 +1,11 @@
 package vbakaev.app.services.mail
 
+import java.util.UUID
+
 import vbakaev.app.models.domain.Mail
 
 trait MailGenerationService {
-  def accountConfirmation(email: String, token: String): Mail
+  def accountConfirmation(email: String, token: UUID): Mail
 }
 
 class MailGenerationServiceImpl(
@@ -11,8 +13,8 @@ class MailGenerationServiceImpl(
     sender: String
 ) extends MailGenerationService {
   private val AccountConfirmation = "accountConfirmation"
-  override def accountConfirmation(email: String, token: String): Mail = {
-    val magicLink = s"$host/confirmRegistration?email=$email&token=$token"
+  override def accountConfirmation(email: String, token: UUID): Mail = {
+    val magicLink = s"$host/confirmRegistration?email=$email&token=${token.toString}"
     Mail(
       customId = AccountConfirmation,
       from = sender,

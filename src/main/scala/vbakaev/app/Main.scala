@@ -3,17 +3,16 @@ package vbakaev.app
 import java.time.Clock
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.ExceptionHandler
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.RejectionHandler
+import akka.http.scaladsl.server.{ExceptionHandler, RejectionHandler}
 import com.typesafe.scalalogging.LazyLogging
 import pureconfig.ConfigSource
 import vbakaev.app.config.AppConfig
 import vbakaev.app.interfaces.{AuthInterface, ErrorHandler, Interface}
-import vbakaev.app.services.{AuthServiceImpl, JwtService}
-import vbakaev.app.services.mail.{MailGenerationServiceImpl, MailServiceImpl}
-import pureconfig.generic.auto._
 import vbakaev.app.repositories.mongo.{AccountRepository, RegistrationTokenRepository}
+import vbakaev.app.services.mail.{MailGenerationServiceImpl, MailServiceImpl}
+import vbakaev.app.services.{AuthServiceImpl, JwtService}
+import pureconfig.generic.auto._
 
 import scala.concurrent.ExecutionContextExecutor
 

@@ -12,11 +12,11 @@ class MailGenerationServiceImpl(
     host: String,
     sender: String
 ) extends MailGenerationService {
-  private val AccountConfirmation = "accountConfirmation"
+  private val accountConfirmation = "accountConfirmation"
   override def accountConfirmation(email: String, token: UUID): Mail = {
     val magicLink = s"$host/confirmRegistration?email=$email&token=${token.toString}"
     Mail(
-      customId = AccountConfirmation,
+      customId = accountConfirmation,
       from = sender,
       to = email,
       subject = "Please confirm your Fisorm account",

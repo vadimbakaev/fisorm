@@ -3,52 +3,30 @@ package vbakaev.app.repositories.mongo
 import java.time.Clock
 import java.util.UUID
 
-import com.mongodb.ConnectionString
-import org.bson.UuidRepresentation
-import org.bson.codecs.UuidCodec
-import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
-import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._
-import org.mongodb.scala.connection.ClusterSettings
 import org.mongodb.scala.model.{Filters, IndexOptions, Indexes}
-import org.mongodb.scala.{MongoClient, MongoClientSettings, MongoCollection, MongoDatabase}
-import vbakaev.app.config.MongoDBConfig
+import org.mongodb.scala.{MongoCollection, MongoDatabase}
 import vbakaev.app.models.domain.auth.AccessToken
 import vbakaev.app.repositories.{DeleteRepository, SafeRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class AccessTokenRepository(
-    config: MongoDBConfig
+    db: MongoDatabase
 )(implicit ec: ExecutionContext, clock: Clock)
     extends SafeRepository[AccessToken]
     with DeleteRepository[AccessToken] {
 
-  private lazy val clusterSettings = ClusterSettings
-    .builder()
-    .applyConnectionString(new ConnectionString(config.uri))
-    .build()
-
-  private lazy val clientSettings: MongoClientSettings = MongoClientSettings
-    .builder()
-    .applyToClusterSettings((b: ClusterSettings.Builder) => {
-      b.applySettings(clusterSettings)
-      ()
-    })
-    .build()
-
-  private lazy val database: MongoDatabase = MongoClient(clientSettings)
-    .getDatabase(config.database)
+  private val database: MongoDatabase = db
     .withCodecRegistry(
       fromRegistries(
         fromProviders(classOf[AccessToken]),
-        CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
-        DEFAULT_CODEC_REGISTRY
+        db.codecRegistry
       )
     )
 
-  private lazy val collectionF: Future[MongoCollection[AccessToken]] = initCollection(database)
+  private val collectionF: Future[MongoCollection[AccessToken]] = initCollection(database)
 
   private def initCollection(database: MongoDatabase): Future[MongoCollection[AccessToken]] = {
     val collection = database.getCollection[AccessToken](classOf[AccessToken].getSimpleName.toLowerCase)

@@ -6,6 +6,12 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.{ExceptionHandler, RejectionHandler}
 import com.typesafe.scalalogging.LazyLogging
+import org.bson.UuidRepresentation
+import org.bson.codecs.UuidCodec
+import org.bson.codecs.configuration.CodecRegistries
+import org.bson.codecs.configuration.CodecRegistries.fromRegistries
+import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
+import org.mongodb.scala.{MongoClient, MongoDatabase}
 import pureconfig.ConfigSource
 import vbakaev.app.config.AppConfig
 import vbakaev.app.interfaces.{AuthInterface, ErrorHandler, Interface}
@@ -26,10 +32,18 @@ object Main extends App with LazyLogging {
     .fold(
       error => logger.error(s"Configuration loading error $error"),
       config => {
+        val database: MongoDatabase = MongoClient(config.mongo.uri)
+          .getDatabase(config.mongo.database)
+          .withCodecRegistry(
+            fromRegistries(
+              CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
+              DEFAULT_CODEC_REGISTRY
+            )
+          )
         val mailGenerator               = new MailGenerationServiceImpl(config.mail.host, config.mail.sender)
         val mailService                 = new MailServiceImpl(config.mailjet)
-        val repository                  = new AccountRepository(config.mongo)
-        val registrationTokenRepository = new AccessTokenRepository(config.mongo)
+        val repository                  = new AccountRepository(database)
+        val registrationTokenRepository = new AccessTokenRepository(database)
         val tokenGenerationService      = new JwtService(config.jwt)
         val authService = new AuthServiceImpl(
           repository,

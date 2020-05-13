@@ -1,10 +1,11 @@
 package vbakaev.app.services
 
 import java.time.Clock
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 import vbakaev.app.models.domain.Account
-import vbakaev.app.models.domain.auth.RegistrationToken
+import vbakaev.app.models.domain.auth.AccessToken
 import vbakaev.app.models.exceptions.{TokenNotFoundException, UnexpectedAccountState}
 import vbakaev.app.repositories._
 import vbakaev.app.services.mail.{MailGenerationService, MailService}
@@ -19,17 +20,18 @@ trait AuthService {
 
 class AuthServiceImpl(
     accountRepository: ReadRepository[Account] with CreateRepository[Account] with UpdateRepository[Account],
-    registrationRepository: SafeRepository[RegistrationToken] with DeleteRepository[RegistrationToken],
+    registrationRepository: SafeRepository[AccessToken] with DeleteRepository[AccessToken],
     mailGenerationService: MailGenerationService,
     mailService: MailService,
-    tokenGenerationService: TokenGenerationService
+    tokenGenerationService: TokenGenerationService,
+    accessTokenHoursDuration: Long = 2L
 )(implicit ec: ExecutionContext, clock: Clock)
     extends AuthService {
 
   override def register(email: String): Future[Unit] = {
     accountRepository.read(email).flatMap {
       case Some(account) if account.activatedAt.isDefined =>
-        sendAccessEmail(account)
+        sendAccessEmail(account, accessTokenHoursDuration)
       case Some(account) =>
         sendConfirmRegistrationEmail(account)
       case None =>
@@ -55,10 +57,16 @@ class AuthServiceImpl(
 
   override def access(email: String): Future[Option[Unit]] = ???
 
-  private def sendAccessEmail(account: Account): Future[Unit] = {
-    print(account)
-    Future.unit
-  }
+  private def sendAccessEmail(account: Account, hoursDuration: Long): Future[Unit] =
+    for {
+      _ <- registrationRepository.delete(account.email)
+      newToken = registrationRepository
+        .newItem(account.email)
+        .copy(expiredAt = Some(clock.instant().plus(hoursDuration, ChronoUnit.HOURS)))
+      token <- registrationRepository.create(newToken)
+      mail = mailGenerationService.accountAccess(account.email, token.token, hoursDuration)
+      _ <- mailService.sendEmail(mail)
+    } yield ()
 
   private def sendConfirmRegistrationEmail(account: Account): Future[Unit] =
     for {

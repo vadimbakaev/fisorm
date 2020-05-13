@@ -9,7 +9,7 @@ import com.typesafe.scalalogging.LazyLogging
 import pureconfig.ConfigSource
 import vbakaev.app.config.AppConfig
 import vbakaev.app.interfaces.{AuthInterface, ErrorHandler, Interface}
-import vbakaev.app.repositories.mongo.{AccountRepository, RegistrationTokenRepository}
+import vbakaev.app.repositories.mongo.{AccessTokenRepository, AccountRepository}
 import vbakaev.app.services.mail.{MailGenerationServiceImpl, MailServiceImpl}
 import vbakaev.app.services.{AuthServiceImpl, JwtService}
 import pureconfig.generic.auto._
@@ -29,7 +29,7 @@ object Main extends App with LazyLogging {
         val mailGenerator               = new MailGenerationServiceImpl(config.mail.host, config.mail.sender)
         val mailService                 = new MailServiceImpl(config.mailjet)
         val repository                  = new AccountRepository(config.mongo)
-        val registrationTokenRepository = new RegistrationTokenRepository(config.mongo)
+        val registrationTokenRepository = new AccessTokenRepository(config.mongo)
         val tokenGenerationService      = new JwtService(config.jwt)
         val authService = new AuthServiceImpl(
           repository,

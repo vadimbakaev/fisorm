@@ -14,16 +14,16 @@ import org.mongodb.scala.connection.ClusterSettings
 import org.mongodb.scala.model.{Filters, IndexOptions, Indexes}
 import org.mongodb.scala.{MongoClient, MongoClientSettings, MongoCollection, MongoDatabase}
 import vbakaev.app.config.MongoDBConfig
-import vbakaev.app.models.domain.auth.RegistrationToken
+import vbakaev.app.models.domain.auth.AccessToken
 import vbakaev.app.repositories.{DeleteRepository, SafeRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RegistrationTokenRepository(
+class AccessTokenRepository(
     config: MongoDBConfig
 )(implicit ec: ExecutionContext, clock: Clock)
-    extends SafeRepository[RegistrationToken]
-    with DeleteRepository[RegistrationToken] {
+    extends SafeRepository[AccessToken]
+    with DeleteRepository[AccessToken] {
 
   private lazy val clusterSettings = ClusterSettings
     .builder()
@@ -42,39 +42,39 @@ class RegistrationTokenRepository(
     .getDatabase(config.database)
     .withCodecRegistry(
       fromRegistries(
-        fromProviders(classOf[RegistrationToken]),
+        fromProviders(classOf[AccessToken]),
         CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
         DEFAULT_CODEC_REGISTRY
       )
     )
 
-  private lazy val collectionF: Future[MongoCollection[RegistrationToken]] = initCollection(database)
+  private lazy val collectionF: Future[MongoCollection[AccessToken]] = initCollection(database)
 
-  private def initCollection(database: MongoDatabase): Future[MongoCollection[RegistrationToken]] = {
-    val collection = database.getCollection[RegistrationToken](classOf[RegistrationToken].getSimpleName.toLowerCase)
+  private def initCollection(database: MongoDatabase): Future[MongoCollection[AccessToken]] = {
+    val collection = database.getCollection[AccessToken](classOf[AccessToken].getSimpleName.toLowerCase)
     collection
       .createIndex(Indexes.ascending("email"), IndexOptions().background(false).unique(true))
       .toFuture()
       .map(_ => collection)
   }
 
-  override def read(email: String): Future[Option[RegistrationToken]] = collectionF.flatMap { collection =>
-    collection.find[RegistrationToken](Filters.eq("email", email)).toFuture().map(_.headOption)
+  override def read(email: String): Future[Option[AccessToken]] = collectionF.flatMap { collection =>
+    collection.find[AccessToken](Filters.eq("email", email)).toFuture().map(_.headOption)
   }
 
-  override def create(item: RegistrationToken): Future[RegistrationToken] = collectionF.flatMap { collection =>
+  override def create(item: AccessToken): Future[AccessToken] = collectionF.flatMap { collection =>
     collection.insertOne(item).toFuture().map(_ => item)
   }
 
-  override def newItem(email: String): RegistrationToken =
-    RegistrationToken(
+  override def newItem(email: String): AccessToken =
+    AccessToken(
       token = UUID.randomUUID(),
       email = email,
-      confirmedAt = None,
+      expiredAt = None,
       createdAt = clock.instant()
     )
 
-  override def delete(email: String): Future[Option[RegistrationToken]] = collectionF.flatMap { collection =>
+  override def delete(email: String): Future[Option[AccessToken]] = collectionF.flatMap { collection =>
     collection.findOneAndDelete(Filters.eq("email", email)).toFutureOption()
   }
 }

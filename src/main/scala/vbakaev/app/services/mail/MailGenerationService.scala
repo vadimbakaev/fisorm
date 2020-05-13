@@ -6,6 +6,7 @@ import vbakaev.app.models.domain.Mail
 
 trait MailGenerationService {
   def accountConfirmation(email: String, token: UUID): Mail
+  def accountAccess(email: String, token: UUID, hoursDuration: Long): Mail
 }
 
 class MailGenerationServiceImpl(
@@ -13,7 +14,9 @@ class MailGenerationServiceImpl(
     sender: String
 ) extends MailGenerationService {
   private val accountConfirmation = "accountConfirmation"
-  override def accountConfirmation(email: String, token: UUID): Mail = {
+  private val accountAccess       = "accountAccess"
+
+  def accountConfirmation(email: String, token: UUID): Mail = {
     val magicLink = s"$host/confirmRegistration?email=$email&token=${token.toString}"
     Mail(
       customId = accountConfirmation,
@@ -21,6 +24,18 @@ class MailGenerationServiceImpl(
       to = email,
       subject = "Please confirm your Fisorm account",
       html = s"<a href='$magicLink'>$magicLink</a>",
+    )
+  }
+
+  override def accountAccess(email: String, token: UUID, hoursDuration: Long): Mail = {
+    val magicLink = s"$host/access?email=$email&token=${token.toString}"
+    Mail(
+      customId = accountAccess,
+      from = sender,
+      to = email,
+      subject = "Please click to access your Fisorm account",
+      html = s"The link will be expires in $hoursDuration hours " +
+      s"<a href='$magicLink'>$magicLink</a>",
     )
   }
 }

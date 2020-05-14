@@ -20,11 +20,15 @@ lazy val root = (project in file("."))
         val akkaHttpCirce   = "1.32.0"
         val javaxWsRs       = "2.1.1"
         val mailjet         = "4.2.0"
-        val mongo           = "4.0.2"
+        val mongo           = "4.0.3"
         val akkaHttpCORS    = "0.4.3"
-        val jwtCirce        = "4.2.0"
+        val jwtCirce        = "4.3.0"
+        val webJars         = "0.40"
+        val swaggerUI       = "3.25.2"
       }
       Seq(
+        "org.webjars"                  % "webjars-locator"       % Version.webJars,
+        "org.webjars"                  % "swagger-ui"            % Version.swaggerUI,
         "com.pauldijou"                %% "jwt-circe"            % Version.jwtCirce,
         "org.mongodb.scala"            %% "mongo-scala-driver"   % Version.mongo,
         "com.mailjet"                  % "mailjet-client"        % Version.mailjet,

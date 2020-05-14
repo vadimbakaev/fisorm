@@ -13,7 +13,7 @@ import org.bson.codecs.configuration.CodecRegistries.fromRegistries
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.{MongoClient, MongoDatabase}
 import pureconfig.ConfigSource
-import vbakaev.app.config.AppConfig
+import vbakaev.app.config.{AppConfig, ServerConfig}
 import vbakaev.app.interfaces.{AuthInterface, ErrorHandler, Interface}
 import vbakaev.app.repositories.mongo.{AccessTokenRepository, AccountRepository}
 import vbakaev.app.services.mail.{MailGenerationServiceImpl, MailServiceImpl}
@@ -32,6 +32,7 @@ object Main extends App with LazyLogging {
     .fold(
       error => logger.error(s"Configuration loading error $error"),
       config => {
+        val ServerConfig(interface, port) = config.http
         val database: MongoDatabase = MongoClient(config.mongo.uri)
           .getDatabase(config.mongo.database)
           .withCodecRegistry(
@@ -57,10 +58,10 @@ object Main extends App with LazyLogging {
         val serverRoutes                                = new ServerRoutes(config, api).routes
         implicit def rejectionHandler: RejectionHandler = ErrorHandler.rejectionHandler
         implicit def exceptionHandler: ExceptionHandler = ErrorHandler.exceptionHandler
-        Http().bindAndHandle(serverRoutes, config.http.interface, config.http.port)
+        Http().bindAndHandle(serverRoutes, interface, port)
 
-        logger.info(s"Server is running on http://${config.http.interface}:${config.http.port}/status")
-        logger.info(s"See documentation http://${config.http.interface}:${config.http.port}/swagger")
+        logger.info(s"Server is running on http://$interface:$port/status")
+        logger.info(s"See documentation http://$interface:$port/swagger-ui/index.html?url=/api-docs/swagger.json")
       }
     )
 

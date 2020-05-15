@@ -1,5 +1,7 @@
 # Name of the project
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/45c67264cae44d7e83026ce124daf122)](https://app.codacy.com/manual/vadimbakaev/fisorm?utm_source=github.com&utm_medium=referral&utm_content=vadimbakaev/fisorm&utm_campaign=Badge_Grade_Dashboard)
+
 ![Logo of the project](https://raw.githubusercontent.com/jehna/readme-best-practices/master/sample-logo.png)
 
 > Additional information or tagline

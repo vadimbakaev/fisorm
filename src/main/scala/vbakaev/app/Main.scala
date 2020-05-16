@@ -32,7 +32,8 @@ object Main extends App with LazyLogging {
     .fold(
       error => logger.error(s"Configuration loading error $error"),
       config => {
-        val ServerConfig(interface, port) = config.http
+        logger.info(s"App starting with configuration: $config")
+        val ServerConfig(appRoot, interface, port) = config.http
         val database: MongoDatabase = MongoClient(config.mongo.uri)
           .getDatabase(config.mongo.database)
           .withCodecRegistry(
@@ -60,8 +61,8 @@ object Main extends App with LazyLogging {
         implicit def exceptionHandler: ExceptionHandler = ErrorHandler.exceptionHandler
         Http().bindAndHandle(serverRoutes, interface, port)
 
-        logger.info(s"Server is running on http://$interface:$port/status")
-        logger.info(s"See documentation http://$interface:$port/swagger-ui/index.html?url=/api-docs/swagger.json")
+        logger.info(s"Server is running on http://$appRoot/status")
+        logger.info(s"See documentation http://$appRoot/swagger-ui/index.html?url=/api-docs/swagger.json")
       }
     )
 

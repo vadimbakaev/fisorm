@@ -1,8 +1,14 @@
 lazy val root = (project in file("."))
+  .enablePlugins(JavaServerAppPackaging)
   .settings(
     name := "fisorm-server",
     version := "0.1",
     scalaVersion := "2.12.11",
+    scalafmtOnCompile := true,
+    coverageEnabled in(Compile, compile) := false,
+    coverageEnabled in(Test, test) := true,
+    parallelExecution in(Test, test) := true,
+    mainClass in Compile := Some("vbakaev.app.Main"),
     libraryDependencies ++= {
       object Version {
         val scalaTest       = "3.1.2"
@@ -79,7 +85,3 @@ scalacOptions ++= Seq(
   "-Ywarn-unused:privates", // Warn if a private member is unused.
   "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
 )
-
-coverageEnabled := true
-scalafmtOnCompile := true
-parallelExecution in Test := true

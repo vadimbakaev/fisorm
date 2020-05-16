@@ -16,7 +16,7 @@ class ServerRoutes(appConfig: AppConfig, interfaces: Set[Interface])(implicit cl
 
   private val services: Set[Interface] = Set(
     SwaggerUIInterface,
-    new SwaggerInterface(appConfig.http, documentedServices)
+    new SwaggerInterface(appConfig.http.appRoot, documentedServices)
   )
 
   val routes: Route = cors() { (services ++ documentedServices).map(_.routes).reduce(_ ~ _) }
